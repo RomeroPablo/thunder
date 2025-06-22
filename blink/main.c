@@ -1,22 +1,22 @@
 #include <stdint.h>
 #include "em_device.h"
-#include "em_chip.h"
-#include "em_cmu.h"
-#include "em_gpio.h"
+
+#define LED_PORT 1 /* gpioPortB */
+#define LED_PIN  0
 
 int main(void)
 {
-    CHIP_Init();
-    // Enable clock for GPIO
-    CMU_ClockEnable(cmuClock_GPIO, true);
+    /* Enable clock for GPIO */
+    CMU->CLKEN0_SET = CMU_CLKEN0_GPIO;
 
-    // Configure PB0 as push-pull output
-    GPIO_PinModeSet(gpioPortB, 0, gpioModePushPull, 0);
+    /* Configure PB0 as push-pull output */
+    GPIO->P[LED_PORT].MODEL &= ~_GPIO_P_MODEL_MODE0_MASK;
+    GPIO->P[LED_PORT].MODEL |= GPIO_P_MODEL_MODE0_PUSHPULL;
 
     while (1) {
-        GPIO_PinOutToggle(gpioPortB, 0);
-        for(volatile uint32_t i=0; i<100000; ++i) {
-            __asm__("nop");
+        GPIO->P[LED_PORT].DOUT ^= (1U << LED_PIN);
+        for (volatile uint32_t i = 0; i < 100000; ++i) {
+            __NOP();
         }
     }
 }
